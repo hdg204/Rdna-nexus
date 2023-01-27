@@ -23,6 +23,8 @@ where the rsid is extracted from the bgen file.
 
 ## extract_snp_bulk
 
+*Extract the data of many SNPs*
+
 While many SNPs can be extracted using `extract_snp`, this is slow as it would need to read the bgen for each SNP. The most efficient way is to read the bgen for each chromosome, since these are split in the UKBB data. This function is built for extracting multiple SNPs from a file.
 
 The file should be a tab separated file, with the first two columns being chromosome and base pair position. An example of this is given in https://github.com/hdg204/Rdna-nexus/blob/main/Example_GRS, where only the first two columns are used.
@@ -34,5 +36,11 @@ After installation, this function can be run using:
 It can be a little slow but it prints to screen which chromosome it's on. The output is similar to extract_snp, except there are multiple columns for the genotypes, named 'chr:bp_A0_A1', and multiple rows for the SNP info, one for each SNP.
 
 ## generate_grs
+
+*Calculate a genetic risk score using SNP weights
+
+This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula
+
+$\sum_{n=1}^{N_{snp}} n$
 
 ## For internal Exeter use
