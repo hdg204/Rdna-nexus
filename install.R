@@ -1,3 +1,7 @@
+# run using 
+#library(devtools)
+#source_url("https://raw.githubusercontent.com/hdg204/Rdna-nexus/main/install.R")
+
 install.packages( "http://www.well.ox.ac.uk/~gav/resources/rbgen_v1.1.5.tgz", repos = NULL, type = "source" )
 library('rbgen')
 library('dplyr')
