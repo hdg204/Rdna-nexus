@@ -86,11 +86,6 @@ extract_snp_bulk=function(file_in){
 				 geno=as.numeric(mat[,2]+2*mat[,3])
 				 genotypes[[colname]]=geno
 				 }
-          # as we loop through the reduced grs_in table for only one chromosome, index[j] will be used to link back to stuff in the original table
-          mat=data$data[datavar,,] #the genetic data is in a 3 dimensional (a x b x 3) matrix, where the dimensions are snp (a), sample (b), probability of dosages. I only want the b x 3 bit)
-	      geno=as.numeric(mat[,2]+2*mat[,3])
-          #if labelled the correct way round, then I want the expected genotype for the alt
-			genotypes[[colname]]=geno
         }
       }
     }
