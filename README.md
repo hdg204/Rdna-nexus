@@ -37,6 +37,8 @@ where the rsid is extracted from the bgen file.
 
 ![image](https://user-images.githubusercontent.com/36624710/215060277-b734c84f-5708-4a3b-aa52-82957eb531c0.png)
 
+An image of the genotype data cannot be provided as this contains individual-level genetic data.
+
 ## extract_snp_bulk
 
 *Extract the data of many SNPs*
@@ -49,7 +51,10 @@ After installation, this function can be run using:
 
 `a=extract_snp_bulk('Example_GRS')`
 
-It can be a little slow but it prints to screen which chromosome it's on. The output is similar to extract_snp, except there are multiple columns for the genotypes, named 'chr:bp_A0_A1', and multiple rows for the SNP info, one for each SNP.
+It can be a little slow but it prints to screen which chromosome it's on. The output is similar to extract_snp. It is a list of two elements, genotypes and variants. This time there are multiple columns for the genotypes, named 'chr:bp_A0_A1', and multiple rows for the variants, one for each SNP. The variants table looks like hte following:
+
+![image](https://user-images.githubusercontent.com/36624710/215066013-9689fd7f-5bae-447e-b16b-407d88a91397.png)
+
 
 ## generate_grs
 
