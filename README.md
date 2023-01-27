@@ -39,8 +39,6 @@ It can be a little slow but it prints to screen which chromosome it's on. The ou
 
 *Calculate a genetic risk score using SNP weights
 
-This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula
-
-$\sum \beta_{i}G_{i}$
+This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula $\sum \beta_{i}G_{i}$, where $\beta_i$ is the weight for snp $i$ and $G_i$ is the individuals's imputed genotype for SNP $i$
 
 ## For internal Exeter use
