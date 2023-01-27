@@ -1,6 +1,22 @@
 # Rdna-nexus
 
+## Introduction
+
+This repository contains a few useful functions for analysing genetic data from the UK Biobank using the RStudio Workbench implementation on DNA Nexus. These functions were written for use on the University of Exeter's project, but as none of our curated files are used, this should run universally. There are currently three functions included:
+
+* **extract_snp**, which is for extracting everbody's genotype for a particular SNP
+* **extract_snp_bulk**, which is for extracting everbody's genotype for lots of SNPs
+* **generate_grs**, which combines lots of SNPs into a Genetic Risk Score
+
 ## Installation
+
+To make all functions available, as well as an example file, use
+```
+library(devtools)
+source_url("https://raw.githubusercontent.com/hdg204/Rdna-nexus/main/install.R")
+```
+
+This will source all R functions in the repository.
 
 ## extract_snp
 
@@ -37,8 +53,12 @@ It can be a little slow but it prints to screen which chromosome it's on. The ou
 
 ## generate_grs
 
-*Calculate a genetic risk score using SNP weights
+*Calculate a genetic risk score using SNP weights*
 
-This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula $\sum \beta_{i}G_{i}$, where $\beta_i$ is the weight for snp $i$ and $G_i$ is the individuals's imputed genotype for SNP $i$
+This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula $\sum \beta_{i}G_{i}$, where $\beta_i$ is the weight for snp $i$ and $G_i$ is the individuals's imputed genotype for SNP $i$. This can be run using
+
+`a=generate_grs('Example_GRS')`.
+
+Note that this is the same file used in the extract_snp_bulk function. This is intentional, as it allows users to check each any individual SNP in the GRS easily without generating a new file.
 
 ## For internal Exeter use
