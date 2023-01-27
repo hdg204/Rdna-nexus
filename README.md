@@ -70,6 +70,8 @@ Note that this is the same file used in the extract_snp_bulk function. This is i
 
 Side note: Although the term 'genetic risk score' is used throughout this repository, as it was designed for disease phenotypes, this function is equally applicable for generating genetic scores for continuous traits (which are technically NOT risk scores as they do not confer a risk - https://www.nature.com/articles/s41586-021-03243-6).
 
+Any SNP that is NA will be removed from the score calculation without warning. This will be improved in a future release.
+
 ## For internal Exeter use
 
 There is a script available at https://universityofexeteruk.sharepoint.com/:u:/r/sites/GeneticsofComplexTraitsTeams/Shared%20Documents/R,%20STATA%20and%20other%20coding%20tips/GRS_DNA_Nexus_EXAMPLE.R?csf=1&web=1&e=dk7xaY
