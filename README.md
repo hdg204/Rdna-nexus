@@ -8,6 +8,8 @@ This repository contains a few useful functions for analysing genetic data from 
 * **extract_snp_bulk**, which is for extracting everbody's genotype for lots of SNPs
 * **generate_grs**, which combines lots of SNPs into a Genetic Risk Score
 
+For testing gene-phenotype interactions, I recommend using https://github.com/hdg204/UKBB to derive phenotypes from healthcare records.
+
 ## Installation
 
 To make all functions available, as well as an example file, use
