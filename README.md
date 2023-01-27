@@ -16,7 +16,7 @@ library(devtools)
 source_url("https://raw.githubusercontent.com/hdg204/Rdna-nexus/main/install.R")
 ```
 
-This will source all R functions in the repository.
+This will source all R functions in the repository. The example file, Example_GRS, contains the SNP information of 269 SNPs obtained from the recent Prostate Cancer meta-analysis from Conti et. al. https://pubmed.ncbi.nlm.nih.gov/33398198/
 
 ## extract_snp
 
@@ -64,6 +64,14 @@ This function takes a weight file, which must have the columns chromosome, base 
 
 `a=generate_grs('Example_GRS')`.
 
-Note that this is the same file used in the extract_snp_bulk function. This is intentional, as it allows users to check each any individual SNP in the GRS easily without generating a new file.
+Note that this is the same file used in the extract_snp_bulk function. This is intentional, as it allows users to check each any individual SNP in the GRS easily without generating a new file. The output is a data frame with two columns, the eid and the calculated risk score.
+
+Although the term 'genetic risk score' is used throughout this repository, as it was designed for disease phenotypes, this function is equally applicable for generating genetic scores for continuous traits (which are technically NOT risk scores as they do not confer a risk - https://www.nature.com/articles/s41586-021-03243-6).
 
 ## For internal Exeter use
+
+There is a script available at https://universityofexeteruk.sharepoint.com/:u:/r/sites/GeneticsofComplexTraitsTeams/Shared%20Documents/R,%20STATA%20and%20other%20coding%20tips/GRS_DNA_Nexus_EXAMPLE.R?csf=1&web=1&e=dk7xaY
+
+This uses the scripts to extract phenotypes from the healthcare records available at https://github.com/hdg204/UKBB to derive a basic prostate cancer phenotype and test the genetic risk score.
+
+
