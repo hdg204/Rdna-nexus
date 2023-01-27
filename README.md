@@ -74,7 +74,7 @@ Side note: Although the term 'genetic risk score' is used throughout this reposi
 
 There is a script available at https://universityofexeteruk.sharepoint.com/:u:/r/sites/GeneticsofComplexTraitsTeams/Shared%20Documents/R,%20STATA%20and%20other%20coding%20tips/GRS_DNA_Nexus_EXAMPLE.R?csf=1&web=1&e=dk7xaY
 
-This uses the scripts to extract phenotypes from the healthcare records available at https://github.com/hdg204/UKBB to derive a basic prostate cancer phenotype and test the genetic risk score, plotting the distribution within cases and controls, and the ROC AUC. The following figures should be produced.
+This uses the scripts to extract phenotypes from the healthcare records available at https://github.com/hdg204/UKBB to derive a basic prostate cancer phenotype and test the genetic risk score, plotting the distribution within cases and controls, and the ROC AUC of an integrated model including age at baseline. The following figures should be produced.
 
 ![image](https://user-images.githubusercontent.com/36624710/215073173-33e98653-aaaa-4c8a-a914-21288927574b.png)
 
