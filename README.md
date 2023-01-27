@@ -47,7 +47,7 @@ An image of the genotype data cannot be provided as this contains individual-lev
 
 While many SNPs can be extracted using `extract_snp`, this is slow as it would need to read the bgen for each SNP. The most efficient way is to read the bgen for each chromosome, since these are split in the UKBB data. This function is built for extracting multiple SNPs from a file.
 
-The file should be a tab separated file, with the first two columns being chromosome and base pair position. An example of this is given in https://github.com/hdg204/Rdna-nexus/blob/main/Example_GRS, where only the first two columns are used.
+The file should be a tab separated file, with the first two columns being chr and bp, Ideally, these should be named chr and bp, but they will be renamed anyway if not. An example of this is given in https://github.com/hdg204/Rdna-nexus/blob/main/Example_GRS, where only the first two columns are used. It's fine if there are more columns, as long as the first two represent chromosome and base pair.
 
 After installation, this function can be run using:
 
@@ -68,10 +68,13 @@ This function takes a weight file, which must have the columns chromosome, base 
 
 Note that this is the same file used in the extract_snp_bulk function. This is intentional, as it allows users to check each any individual SNP in the GRS easily without generating a new file. The output is a data frame with two columns, the eid and the calculated risk score.
 
-Although the term 'genetic risk score' is used throughout this repository, as it was designed for disease phenotypes, this function is equally applicable for generating genetic scores for continuous traits (which are technically NOT risk scores as they do not confer a risk - https://www.nature.com/articles/s41586-021-03243-6).
+Side note: Although the term 'genetic risk score' is used throughout this repository, as it was designed for disease phenotypes, this function is equally applicable for generating genetic scores for continuous traits (which are technically NOT risk scores as they do not confer a risk - https://www.nature.com/articles/s41586-021-03243-6).
 
 ## For internal Exeter use
 
 There is a script available at https://universityofexeteruk.sharepoint.com/:u:/r/sites/GeneticsofComplexTraitsTeams/Shared%20Documents/R,%20STATA%20and%20other%20coding%20tips/GRS_DNA_Nexus_EXAMPLE.R?csf=1&web=1&e=dk7xaY
 
-This uses the scripts to extract phenotypes from the healthcare records available at https://github.com/hdg204/UKBB to derive a basic prostate cancer phenotype and test the genetic risk score, plotting the distribution within cases and controls, and the ROC AUC
+This uses the scripts to extract phenotypes from the healthcare records available at https://github.com/hdg204/UKBB to derive a basic prostate cancer phenotype and test the genetic risk score, plotting the distribution within cases and controls, and the ROC AUC.
+
+![image](https://user-images.githubusercontent.com/36624710/215072739-7e17de0d-c95e-4796-9cf5-c0c4ab0cdbff.png)
+
