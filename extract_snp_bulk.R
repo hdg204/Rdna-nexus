@@ -76,13 +76,13 @@ extract_snp_bulk=function(file_in){
 	  variants=rbind(as.data.frame(variants),as.data.frame(data$variants))
       
       for (j in 1:nrow(snps_in_i)){
-		colname=paste(i,':',snps_in_i$bp[j],sep='')
+	
         #if it doesn't find a variant it causes problems, so I need to match the base pair
         datavar=which(snps_in_i$bp[j]==data$variants$position) #this is the row in the extracted data that corresponds to the variant j in grs_chr_i
         
         if (length(datavar>0)){ #so only if there's a matching base pair
 			for (k in datavar){
-				 paste(i,':',data$variants$position[k],'_',data$variants$allele0[k],'_',data$variants$allele1[k],sep='')
+				 colname=paste(i,':',data$variants$position[k],'_',data$variants$allele0[k],'_',data$variants$allele1[k],sep='')
 				 mat=data$data[k,,]
 				 geno=as.numeric(mat[,2]+2*mat[,3])
 				 genotypes[[colname]]=geno
