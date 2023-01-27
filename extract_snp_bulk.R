@@ -1,6 +1,6 @@
 #------------------------------------------------------------------------------
-# Script Name: GRS_DNA_Nexus
-# Purpose: A function to calculate a genetic risk score on the DNA Nexus platform from the RStudio Workbench implementation
+# Script Name: extract_snp_bulk
+# Purpose: A function to extract multiple SNPs from DNA Nexus' imputed genotype data using a file input
 # Author: Dr. Harry Green, University of Exeter
 # Date Created: 17/01/23
 # Dependencies: depends on the package rbgen being installed. Use install.packages( "http://www.well.ox.ac.uk/~gav/resources/rbgen_v1.1.5.tgz", repos = NULL, type = "source" ) then library('rbgen') to ensure the correct version is installed
@@ -38,7 +38,7 @@ extract_snp_bulk=function(file_in){
   }
   filenames=create_filenames()
   
-  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the samples in it, but there's a dummy line at the start
+  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
   eid=sample$ID_1[2:nrow(sample)]
   
   snps_in=read.table(file_in,header=T)
@@ -48,6 +48,7 @@ extract_snp_bulk=function(file_in){
   names(snps_in)=c('chr','bp')
   nsnps=nrow(snps_in)
   
+  #
   genotypes=data.frame(eid=eid)
   variants=data.frame(chromosome=double(),position=double(),rsid=character(),number_of_alleles=character(),allele0=character(),allele1=character())
   
