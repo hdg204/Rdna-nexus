@@ -41,6 +41,6 @@ It can be a little slow but it prints to screen which chromosome it's on. The ou
 
 This function takes a weight file, which must have the columns chromosome, base pair, other, effect, and weight, and calculates a genetic risk score applying the formula
 
-$\sum_{n=1}^{N} \beta_{i}G_{i}$
+$\sum_{n=1}^{N}$ $\beta_{i}G_{i}$
 
 ## For internal Exeter use
