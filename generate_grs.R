@@ -38,10 +38,10 @@ generate_grs=function(file_in){
   }
   filenames=create_filenames()
   
-  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the samples in it, but there's a dummy line at the start
+  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the samples in it, but there's a dummy line at the start to remove
   eid=sample$ID_1[2:nrow(sample)]
   
-  grs_in=read.table(file_in,header=T)
+  grs_in=read.table(file_in,header=T) #this just reads in the file containing weights and SNP information from file_in
   
   
   #preallocating a dosage matrix
@@ -58,10 +58,10 @@ generate_grs=function(file_in){
   for (i in 1:22){
     print(paste('extracting SNPs on chromosome',i))
     
-    grs_chr_i=grs_in[grs_in$chr==i,] #trying not to use dplyr, but this is just the snps on chromosome i
+    grs_chr_i=grs_in[grs_in$chr==i,] #Cuts down to only the SNPs on chromosome i
     
     if (nrow(grs_chr_i)>0){ #if there's nothing on the chromosome just skip it
-      #the rbgen package wants the chromosome in two digit form, e.g. '08'
+      #the rbgen package wants the chromosome in two digit form, e.g. '08'. Here's a clunky fix
       if (i<10){
         chr=paste('0',i,sep='')
       }else{
@@ -74,7 +74,7 @@ generate_grs=function(file_in){
         start = grs_chr_i$bp,
         end = grs_chr_i$bp
       )
-      data=bgen.load(filenames[i], ranges )# this pulls out the data for all snps on the chromosome. It has to be by chromosome because the dna nexus data is stored in one file per chromosome
+      data=bgen.load(filenames[i], ranges )# this pulls out the data for all snps on the chromosome. It has to be by chromosome because the dna nexus data is stored in one file per chromosome. Ideally, there would be one big bgen file and this would be a lot quicker
       
       for (j in 1:nrow(grs_chr_i)){
         genotypes=rep(NA,length(eid))
@@ -82,7 +82,7 @@ generate_grs=function(file_in){
         #if it doesn't find a variant it causes problems, so I need to match the base pair
         datavar=which(grs_chr_i$bp[j]==data$variants$position) #this is the row in the extracted data that corresponds to the variant j in grs_chr_i
         
-        if (length(datavar>0)){ #so only if there's a matching base pair
+        if (length(datavar>0)){ #so only if there's a matching base pair, if the snp is not found in the bgen file, it will be skipped
           # as we loop through the reduced grs_in table for only one chromosome, index[j] will be used to link back to stuff in the original table
           mat=data$data[datavar,,] #the genetic data is in a 3 dimensional (a x b x 3) matrix, where the dimensions are snp (a), sample (b), probability of dosages. I only want the b x 3 bit)
           ref=data$variants[datavar,5] #reference according to bgen
@@ -108,10 +108,10 @@ generate_grs=function(file_in){
   
   a=dosage_matrix[,2:(nsnps+1)] #this makes a new matrix with only the columns for the genetic data
   b=matrix(grs_in$weights) 
-  missing=which(is.na(a[1,]))
+  missing=which(is.na(a[1,])) #any SNPs that are left as NA need to be removed, or all the scores will be NA
   a=a[,-missing]
-  b=b[-missing]
-  grs=a%*%b #this neat matrix multiplication just makes the GRS
+  b=b[-missing] 
+  grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
   grs_df=data.frame(eid=eid,grs=grs)
   return(grs_df)
 }
