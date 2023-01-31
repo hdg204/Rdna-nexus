@@ -12,6 +12,15 @@ extract_snp=function(chr,bp){
     chr_str=as.character(chr)
   }
   
+  # SEX CHROMOSOMES BREAK THINGS. I fix.
+  if (chr==23){
+	# Some people aren't in the sex chromosome bgen file so using the sample file from chromosome 1 doesn't work
+	sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_cX_b0_v3.sample",header=T)
+	bgen_file="../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_cX_b0_v3.bgen"
+	chr_str='X'
+	eid=sample$ID_1[2:nrow(sample)]
+  }
+  
   #this tells rbgen where to look
   ranges = data.frame(
     chromosome = chr_str,
