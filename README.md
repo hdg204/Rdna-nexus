@@ -10,6 +10,8 @@ This repository contains a few useful functions for analysing genetic data from 
 
 For testing gene-phenotype interactions, I recommend using https://github.com/hdg204/UKBB to derive phenotypes from healthcare records.
 
+SNPs on the X Chromosome should be inputted using Chromosome 23. All base pair positions should be in Genome Reference Consortium Human Build 37.
+
 ## Installation
 
 To make all functions available, as well as an example file, use
