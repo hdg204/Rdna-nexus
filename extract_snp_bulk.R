@@ -34,7 +34,8 @@ extract_snp_bulk=function(file_in){
       "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c19_b0_v3.bgen",
       "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c20_b0_v3.bgen",
       "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c21_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c22_b0_v3.bgen"))
+      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c22_b0_v3.bgen",
+      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_cX_b0_v3.bgen"))
   }
   filenames=create_filenames()
   
@@ -52,7 +53,7 @@ extract_snp_bulk=function(file_in){
   genotypes=data.frame(eid=eid)
   variants=data.frame(chromosome=double(),position=double(),rsid=character(),number_of_alleles=character(),allele0=character(),allele1=character())
   
-  for (i in 1:22){
+  for (i in 1:23){
     print(paste('extracting SNPs on chromosome',i))
     
     snps_in_i=snps_in[snps_in$chr==i,] #trying not to use dplyr, but this is just the snps on chromosome i
@@ -64,6 +65,11 @@ extract_snp_bulk=function(file_in){
       }else{
         chr=as.character(i)
       }
+      if (i==23){ #sex chromosomes require special treatment
+        chr='X'
+        samplesex=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_cX_b0_v3.sample",header=T)
+        sexeid=sample$ID_1[2:nrow(samplesex)]
+      }
       
       #this tells rbgen where to look
       ranges = data.frame(
@@ -72,21 +78,31 @@ extract_snp_bulk=function(file_in){
         end = snps_in_i$bp
       )
       data=bgen.load(filenames[i], ranges )# this pulls out the data for all snps on the chromosome. It has to be by chromosome because the dna nexus data is stored in one file per chromosome
-	  
-	  variants=rbind(as.data.frame(variants),as.data.frame(data$variants))
+      
+      variants=rbind(as.data.frame(variants),as.data.frame(data$variants))
       
       for (j in 1:nrow(snps_in_i)){
-	
+        
         #if it doesn't find a variant it causes problems, so I need to match the base pair
         datavar=which(snps_in_i$bp[j]==data$variants$position) #this is the row in the extracted data that corresponds to the variant j in grs_chr_i
         
         if (length(datavar>0)){ #so only if there's a matching base pair
-			for (k in datavar){
-				 colname=paste(i,':',data$variants$position[k],'_',data$variants$allele0[k],'_',data$variants$allele1[k],sep='')
-				 mat=data$data[k,,]
-				 geno=as.numeric(mat[,2]+2*mat[,3])
-				 genotypes[[colname]]=geno
-				 }
+          for (k in datavar){
+            colname=paste(i,':',data$variants$position[k],'_',data$variants$allele0[k],'_',data$variants$allele1[k],sep='')
+            mat=data$data[k,,]
+            geno=as.numeric(mat[,2]+2*mat[,3])
+            if (i<23){
+              genotypes[[colname]]=geno
+            }
+            if (i==23){
+			  # for SNPs on chromosome 23, the genotype vector is shorter than the sample list. I'm using a full join so the people missing are inputed as NA. This means there are NAs!
+              frame1=data.frame(eid=eid)
+              frame2=data.frame(eid=sexeid)
+              frame2$genotype=geno
+              frame3=full_join(frame1,frame2)
+              genotypes[[colname]]=frame3$genotype
+            }
+          }
         }
       }
     }
@@ -95,7 +111,3 @@ extract_snp_bulk=function(file_in){
   out=list(genotypes=genotypes,variants=variants)
   return(out)
 }
-
-
-
-
