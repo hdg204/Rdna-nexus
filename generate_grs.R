@@ -45,11 +45,15 @@ generate_grs=function(file_in){
   #trim the input file to only the ones that are there. We don't need the ones that didn't match now I have them in their own output variable
   grs_snps=grs_snps[!is.na(matches),]
   
-  #for flipped snps, I will flip the dosage file by 2- instead of flipping the weights, because then it will work even if odds ratios are given instead of log-odds
-  dosage_matrix[,!is.na(flip_matches)]=2-dosage_matrix[,!is.na(flip_matches)]
+  #for flipped snps, I will flip the dosage file by 2- instead of flipping the weights, because then it will work even if odds ratios are given instead of log-odds BUT IT DOESN'T WORK FOR SEX CHROMOSOMES
+  # dosage_matrix[,!is.na(flip_matches)]=2-dosage_matrix[,!is.na(flip_matches)]
+  
+  grs_snps$weight[!is.na(flip_matches)]=-grs_snps$weight[!is.na(flip_matches)]
+  
   a=as.matrix(dosage_matrix)
   b=matrix(grs_snps$weight) 
   grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
   grs_df=data.frame(eid=eid,grs=grs)
-  return(grs_df)
+  list(grs=grs_df,missing=missing_snps,snp_data=dosage)
+  return(grs)
 }
