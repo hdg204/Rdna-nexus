@@ -109,8 +109,10 @@ generate_grs=function(file_in){
   a=dosage_matrix[,2:(nsnps+1)] #this makes a new matrix with only the columns for the genetic data
   b=matrix(grs_in$weights) 
   missing=which(is.na(a[1,])) #any SNPs that are left as NA need to be removed, or all the scores will be NA
-  a=a[,-missing]
-  b=b[-missing] 
+  if (length(missing>0)){
+	a=a[,-missing]
+	b=b[-missing] 
+  }
   grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
   grs_df=data.frame(eid=eid,grs=grs)
   return(grs_df)
