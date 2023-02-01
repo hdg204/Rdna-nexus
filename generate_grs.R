@@ -54,6 +54,6 @@ generate_grs=function(file_in){
   b=matrix(grs_snps$weight) 
   grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
   grs_df=data.frame(eid=eid,grs=grs)
-  list(grs=grs_df,missing=missing_snps,snp_data=dosage)
-  return(grs)
+  output=list(grs=grs_df,missing=missing_snps,snp_data=dosage)
+  return(output)
 }
