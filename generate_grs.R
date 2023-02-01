@@ -9,110 +9,46 @@
 
 generate_grs=function(file_in){
   
+  dosage=extract_snp_bulk(file_in)
+  dosage_matrix=dosage$genotypes[,2:ncol(dosage$genotypes)]
   
-  # This function just creates a list of file names of bgen files in UKBB. This should be constant across all projects, I think
-  create_filenames=function(){
-    return(c(
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c2_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c3_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c4_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c5_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c6_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c7_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c8_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c9_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c10_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c11_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c12_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c13_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c14_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c15_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c16_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c17_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c18_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c19_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c20_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c21_b0_v3.bgen",
-      "../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c22_b0_v3.bgen"))
-  }
-  filenames=create_filenames()
-  
-  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the samples in it, but there's a dummy line at the start to remove
+  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
   eid=sample$ID_1[2:nrow(sample)]
   
-  grs_in=read.table(file_in,header=T) #this just reads in the file containing weights and SNP information from file_in
+  grs_snps=read.table(file_in,header=T)
+  grs_snps=grs_snps%>%arrange(chr,bp)
   
+  #some of the snps will have not been read in by the UK Biobank, so I need to make sure that only the SNPs in dosage_matrix are in grs_snps. The thing is the dosage matrix has snps ordered by the bgen file, and the snp input can be either way around
+  dosage_snp_names=names(dosage_matrix)
+  input_snp_names=paste(grs_snps$chr,':',grs_snps$bp,'_',grs_snps$other,'_',grs_snps$effect,sep='')
   
-  #preallocating a dosage matrix
-  dosage_matrix=matrix(data=NA,nrow=length(eid),ncol=nrow(grs_in)+1)
-  dosage_matrix[,1]=eid
+  #some will match, some will match if a flip is made
+  matches=rep(NA,length(input_snp_names)) #for each snp in the input file, index is its position in the output file
+  flip_matches=rep(NA,length(dosage_snp_names)) #for each snp in the dosage, flip is if a flip was required to match it to the input file
   
-  
-  #people should be putting these headers on anyway, but in case they're wrong, I've relabelled them
-  names(grs_in)=c('chr','bp', 'other','effect','weights')
-  nsnps=nrow(grs_in)
-  
-  grs_in$index=1:nrow(grs_in) #index just goes 1 2 3 ... and helps me keep track of where the SNPs are if they are entered out of order
-  
-  for (i in 1:22){
-    print(paste('extracting SNPs on chromosome',i))
-    
-    grs_chr_i=grs_in[grs_in$chr==i,] #Cuts down to only the SNPs on chromosome i
-    
-    if (nrow(grs_chr_i)>0){ #if there's nothing on the chromosome just skip it
-      #the rbgen package wants the chromosome in two digit form, e.g. '08'. Here's a clunky fix
-      if (i<10){
-        chr=paste('0',i,sep='')
-      }else{
-        chr=as.character(i)
-      }
-      
-      #this tells rbgen where to look
-      ranges = data.frame(
-        chromosome = rep(chr,nrow(grs_chr_i)),
-        start = grs_chr_i$bp,
-        end = grs_chr_i$bp
-      )
-      data=bgen.load(filenames[i], ranges )# this pulls out the data for all snps on the chromosome. It has to be by chromosome because the dna nexus data is stored in one file per chromosome. Ideally, there would be one big bgen file and this would be a lot quicker
-      
-      for (j in 1:nrow(grs_chr_i)){
-        genotypes=rep(NA,length(eid))
-        
-        #if it doesn't find a variant it causes problems, so I need to match the base pair
-        datavar=which(grs_chr_i$bp[j]==data$variants$position) #this is the row in the extracted data that corresponds to the variant j in grs_chr_i
-        
-        if (length(datavar>0)){ #so only if there's a matching base pair, if the snp is not found in the bgen file, it will be skipped
-          # as we loop through the reduced grs_in table for only one chromosome, index[j] will be used to link back to stuff in the original table
-          mat=data$data[datavar,,] #the genetic data is in a 3 dimensional (a x b x 3) matrix, where the dimensions are snp (a), sample (b), probability of dosages. I only want the b x 3 bit)
-          ref=data$variants[datavar,5] #reference according to bgen
-          alt=data$variants[datavar,6] #alternate according to bgen
-          eff=grs_chr_i$effect[j] #effect according to input
-          oth=grs_chr_i$other[j] #effect according to input
-          
-          #if labelled the correct way round, then I want the expected genotype for the alt
-          if ((alt==eff) & (ref==oth)){ 
-            genotypes=as.numeric(mat[,2]+2*mat[,3])
-          }
-          #if the wrong way round, I want the expected genotype for the ref, because that's the effect allele
-          if ((alt==oth) & (ref==eff)){
-            genotypes=as.numeric(mat[,2]+2*mat[,1])
-          }
-          # if they don't match I just leave them all NA
-          
-          dosage_matrix[,1+grs_chr_i$index[j]]=genotypes
-        }
-      }
-    }
+  for (i in 1:length(input_snp_names)){
+	for(j in 1:length(dosage_snp_names)){
+		if (input_snp_names[i]==dosage_snp_names[j]){ #first try a straight match
+			matches[i]=j
+		}else{ #if they don't match, I'll try a flip.
+			flipname=paste(unlist(strsplit(input_snp_names[i],'_')[[1]][c(1,3,2)]),collapse='_')
+			if (flipname==dosage_snp_names[j]){
+				matches[i]=j
+				flip_matches[j]=j
+			}
+		}	
+	}
   }
   
-  a=dosage_matrix[,2:(nsnps+1)] #this makes a new matrix with only the columns for the genetic data
-  b=matrix(grs_in$weights) 
-  missing=which(is.na(a[1,])) #any SNPs that are left as NA need to be removed, or all the scores will be NA
-  if (length(missing>0)){
-	a=a[,-missing]
-	b=b[-missing] 
-  }
+  missing_snps=input_snp_names[is.na(matches)]
+  
+  #trim the input file to only the ones that are there. We don't need the ones that didn't match now I have them in their own output variable
+  grs_snps=grs_snps[!is.na(matches),]
+  
+  #for flipped snps, I will flip the dosage file by 2- instead of flipping the weights, because then it will work even if odds ratios are given instead of log-odds
+  dosage_matrix[,!is.na(flip_matches)]=2-dosage_matrix[,!is.na(flip_matches)]
+  a=as.matrix(dosage_matrix)
+  b=matrix(grs_snps$weight) 
   grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
   grs_df=data.frame(eid=eid,grs=grs)
   return(grs_df)
