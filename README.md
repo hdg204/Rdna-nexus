@@ -72,7 +72,11 @@ Note that this is the same file used in the extract_snp_bulk function. This is i
 
 Side note: Although the term 'genetic risk score' is used throughout this repository, as it was designed for disease phenotypes, this function is equally applicable for generating genetic scores for continuous traits (which are technically NOT risk scores as they do not confer a risk - https://www.nature.com/articles/s41586-021-03243-6).
 
-Any SNP that is NA will be removed from the score calculation without warning. This will be improved in a future release.
+The ouptut is a list which contains:
+
+* `a$grs` is a data frame with eid and the genetic risk score
+* `a$missing` is a list of snps that were not extracted from the bgen file
+* `a$snp_data` is the dosage file. This contains the output of `extract_snp_bulk('Example_GRS')` and can be used to check maf, HEW, etc
 
 ## For internal Exeter use
 
