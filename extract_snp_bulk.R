@@ -47,6 +47,7 @@ extract_snp_bulk=function(file_in){
   
   #people should be putting these headers on anyway, but in case they're wrong, I've relabelled them
   names(snps_in)=c('chr','bp')
+  snps_in=snps_in%>%arrange(chr,bp)
   nsnps=nrow(snps_in)
   
   #
@@ -74,8 +75,8 @@ extract_snp_bulk=function(file_in){
       #this tells rbgen where to look
       ranges = data.frame(
         chromosome = rep(chr,nrow(snps_in_i)),
-        start = snps_in_i$bp,
-        end = snps_in_i$bp
+        start = sort(snps_in_i$bp),
+        end = sort(snps_in_i$bp)
       )
       data=bgen.load(filenames[i], ranges )# this pulls out the data for all snps on the chromosome. It has to be by chromosome because the dna nexus data is stored in one file per chromosome
       
