@@ -99,7 +99,7 @@ a=as.matrix(dosage$genotypes[,2:ncol(dosage$genotypes)])
 b=as.matrix(grs_snps$weight) 
 grs=a%*%b
 
-grs=data.frame(eid=eid,grs=grs)%>%head()
+grs=data.frame(eid=eid,grs=grs)
 
 return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
 }
