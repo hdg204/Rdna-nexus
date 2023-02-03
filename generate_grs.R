@@ -8,52 +8,100 @@
 #------------------------------------------------------------------------------
 
 generate_grs=function(file_in){
-  
-  dosage=extract_snp_bulk(file_in)
-  dosage_matrix=dosage$genotypes[,2:ncol(dosage$genotypes)]
-  
-  sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
-  eid=sample$ID_1[2:nrow(sample)]
-  
-  grs_snps=read.table(file_in,header=T)
-  grs_snps=grs_snps%>%arrange(chr,bp)
-  
-  #some of the snps will have not been read in by the UK Biobank, so I need to make sure that only the SNPs in dosage_matrix are in grs_snps. The thing is the dosage matrix has snps ordered by the bgen file, and the snp input can be either way around
-  dosage_snp_names=names(dosage_matrix)
-  input_snp_names=paste(grs_snps$chr,':',grs_snps$bp,'_',grs_snps$other,'_',grs_snps$effect,sep='')
-  
-  #some will match, some will match if a flip is made
-  matches=rep(NA,length(input_snp_names)) #for each snp in the input file, index is its position in the output file
-  flip_matches=rep(NA,length(dosage_snp_names)) #for each snp in the dosage, flip is if a flip was required to match it to the input file
-  
-  for (i in 1:length(input_snp_names)){
-	for(j in 1:length(dosage_snp_names)){
-		if (input_snp_names[i]==dosage_snp_names[j]){ #first try a straight match
-			matches[i]=j
-		}else{ #if they don't match, I'll try a flip.
-			flipname=paste(unlist(strsplit(input_snp_names[i],'_')[[1]][c(1,3,2)]),collapse='_')
-			if (flipname==dosage_snp_names[j]){
-				matches[i]=j
-				flip_matches[j]=j
-			}
-		}	
+
+dosage=extract_snp_bulk(file_in)
+
+
+sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
+eid=sample$ID_1[2:nrow(sample)]
+
+grs_snps=read.table(file_in,header=T)
+grs_snps=grs_snps%>%arrange(chr,bp)
+
+nsnps=nrow(grs_snps)
+
+missing=rep(0,nsnps)
+flip=rep(0,nsnps)
+multi=rep(0,nsnps)
+
+#pulling out chromosome from dosage is a bit difficult due to stringiness.
+chrs=as.numeric(dosage$variants$chromosome)
+chrs[dosage$variants$chromosome=='X']=23
+
+for (i in 1:nsnps){
+#for each snp, m1 will be 1 if the variants and alleles match, and 0 if it doesn't
+#for each snp, m2 will be 1 if the variants match alleles but alleles are swapped, and 0 if it doesn't
+# m1 and m2 will both be 0 if there is no match even after a flip
+# m3 is how many chr and bp matches there are. >1 for multi-allelic SNPs
+	m1=(sum(
+			  grs_snps$chr[i]==chrs&
+			  grs_snps$bp[i]==dosage$variants$position&
+			  grs_snps$effect[i]==dosage$variants$allele1&
+			  grs_snps$other[i]==dosage$variants$allele0
+			  )
+	)
+	m2=(sum(
+			  grs_snps$chr[i]==chrs&
+			  grs_snps$bp[i]==dosage$variants$position&
+			  grs_snps$effect[i]==dosage$variants$allele0&
+			  grs_snps$other[i]==dosage$variants$allele1
+			  )
+	)
+	m3=(sum(
+			  grs_snps$chr[i]==chrs&
+			  grs_snps$bp[i]==dosage$variants$position
+			  )
+	)
+	if (m1+m2==0){
+		missing[i]=1
 	}
-  }
-  
-  missing_snps=input_snp_names[is.na(matches)]
-  
-  #trim the input file to only the ones that are there. We don't need the ones that didn't match now I have them in their own output variable
-  grs_snps=grs_snps[!is.na(matches),]
-  
-  #for flipped snps, I will flip the dosage file by 2- instead of flipping the weights, because then it will work even if odds ratios are given instead of log-odds BUT IT DOESN'T WORK FOR SEX CHROMOSOMES
-  # dosage_matrix[,!is.na(flip_matches)]=2-dosage_matrix[,!is.na(flip_matches)]
-  
-  grs_snps$weight[!is.na(flip_matches)]=-grs_snps$weight[!is.na(flip_matches)]
-  
-  a=as.matrix(dosage_matrix)
-  b=matrix(grs_snps$weight) 
-  grs=a%*%b #The entire GRS is made by this neat matrix multiplication, where the dosage table is multiplied by the vector of weights to give a vector of risk scores
-  grs_df=data.frame(eid=eid,grs=grs)
-  output=list(grs=grs_df,missing=missing_snps,snp_data=dosage)
-  return(output)
+	if (m2==1){
+		flip[i]=1
+	}
+	if (m3>1){
+		multi[i]=1
+	}
 }
+
+missing_df=grs_snps[which(missing==T),]
+
+# missing, flip, and multi refer to rows within grs_snps. If grs_snps changes size, these variables will no longer be accurate.
+
+#I will first flip anything that needs flipping, because this will not change the number of rows in the table
+grs_snps$weight[flip==1]=-grs_snps$weight[flip==1]
+
+# if there are multi allelic snps, these need to be removed from the DOSAGE file but NOT from the snp list. There will be 2 columns for that SNP in the dosage file and I need to delete the correct one
+
+# this code looks similar to the other one, but the referencing is going the other way
+
+rem=c()
+for (i in which(multi==1)){
+	# just to shorten code, store the correct chr bp oth eff into variables
+	ch=grs_snps$chr[i]
+	bp=grs_snps$bp[i]
+	oth=grs_snps$other[i]
+	eff=grs_snps$effect[i]
+	chrbpmatch=chrs==ch & dosage$variants$position==bp #is it the right coordinate?
+	allelematch=dosage$variants$allele1==eff & dosage$variants$allele0==oth #are the alleles correct?
+	flipmatch=dosage$variants$allele0==eff & dosage$variants$allele1==oth #are the alleles flipped?
+	
+	wrongallele=which(chrbpmatch & !(allelematch | flipmatch)) #if the chr matches, but the alleles don't even after a flip, we're looking at the wrong allele
+	# remove it from the variants list
+	rem=c(rem,wrongallele)
+}
+dosage$variants=dosage$variants[-rem,]
+dosage$genotypes=dosage$genotypes[,-(rem+1)]
+
+# now I will remove the missing ones. The length of the dosage file should be sum(missing) less than the length of the snp file
+grs_snps=grs_snps[-which(missing==T),]
+
+a=as.matrix(dosage$genotypes[,2:ncol(dosage$genotypes)])
+b=as.matrix(grs_snps$weight) 
+grs=a%*%b
+
+grs=data.frame(eid=eid,grs=grs)%>%head()
+
+return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
+}
+
+
