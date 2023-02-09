@@ -89,9 +89,12 @@ for (i in which(multi==1)){
 	# remove it from the variants list
 	rem=c(rem,wrongallele)
 }
-dosage$variants=dosage$variants[-rem,]
-dosage$genotypes=dosage$genotypes[,-(rem+1)]
 
+if (length(rem)>0){
+	dosage$variants=dosage$variants[-rem,]
+	dosage$genotypes=dosage$genotypes[,-(rem+1)] #I forgot why there's a +1 here, need to revisit that.
+}
+	
 # now I will remove the missing ones. The length of the dosage file should be sum(missing) less than the length of the snp file
 grs_snps=grs_snps[-which(missing==T),]
 
