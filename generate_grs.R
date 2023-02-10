@@ -1,7 +1,7 @@
 #------------------------------------------------------------------------------
 # Script Name: generate_grs
 # Purpose: A function to calculate a genetic risk score on the DNA Nexus platform from the RStudio Workbench implementation
-# Author: Dr. Harry Green, University of Exeter
+# Author: Harry Green and Bethan Rimmer, University of Exeter
 # Date Created: 17/01/23
 # Dependencies: depends on the package rbgen being installed. Use install.packages( "http://www.well.ox.ac.uk/~gav/resources/rbgen_v1.1.5.tgz", repos = NULL, type = "source" ) then library('rbgen') to ensure the correct version is installed
 # Notes: file_in should be a tab separated file with the columns chromosome, bp, other, effect, weight, where other and effect are the allele codes. If the names are not consistent, they will be renamed, it's the order that matters
