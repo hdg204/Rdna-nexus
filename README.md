@@ -88,4 +88,6 @@ This uses the scripts to extract phenotypes from the healthcare records availabl
 
 ![image](https://user-images.githubusercontent.com/36624710/215073242-c4385ef3-ed3b-4b9f-a84d-6ca63216b260.png)
 
+## Acknowledgements
 
+If any of the contained code is used in any academic article, please acknowledge the authors (Harry Green and Bethan Rimmer) include a link to this github repository in the acknowledgements section, and please make any other code used in your article open source.
