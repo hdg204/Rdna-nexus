@@ -63,8 +63,10 @@ for (i in 1:nsnps){
 	}
 }
 
-missing_df=grs_snps[which(missing==T),]
-
+if (sum(missing)>0){
+	missing_df=grs_snps[which(missing==T),]
+}
+	
 # missing, flip, and multi refer to rows within grs_snps. If grs_snps changes size, these variables will no longer be accurate.
 
 #I will first flip anything that needs flipping, because this will not change the number of rows in the table
@@ -96,13 +98,20 @@ if (length(rem)>0){
 }
 	
 # now I will remove the missing ones. The length of the dosage file should be sum(missing) less than the length of the snp file
-grs_snps=grs_snps[-which(missing==T),]
-
+if (sum(missing)>0){
+	grs_snps=grs_snps[-which(missing==T),]
+}
+	
 a=as.matrix(dosage$genotypes[,2:ncol(dosage$genotypes)])
 b=as.matrix(grs_snps$weight) 
 grs=a%*%b
 
 grs=data.frame(eid=eid,grs=grs)
+
+#fix this later
+if (sum(missing)==0){
+	missing_df=0
+}
 
 return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
 }
