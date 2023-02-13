@@ -12,6 +12,8 @@ For testing gene-phenotype interactions, I recommend using https://github.com/hd
 
 SNPs on the X Chromosome should be inputted using Chromosome 23. All base pair positions should be in Genome Reference Consortium Human Build 37.
 
+For any further information / questions / errors, please contact h.d.green@exeter.ac.uk
+
 ## Installation
 
 To make all functions available, as well as an example file, use
