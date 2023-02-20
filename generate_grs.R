@@ -1,13 +1,4 @@
-#------------------------------------------------------------------------------
-# Script Name: generate_grs
-# Purpose: A function to calculate a genetic risk score on the DNA Nexus platform from the RStudio Workbench implementation
-# Author: Harry Green and Bethan Rimmer, University of Exeter
-# Date Created: 17/01/23
-# Dependencies: depends on the package rbgen being installed. Use install.packages( "http://www.well.ox.ac.uk/~gav/resources/rbgen_v1.1.5.tgz", repos = NULL, type = "source" ) then library('rbgen') to ensure the correct version is installed
-# Notes: file_in should be a tab separated file with the columns chromosome, bp, other, effect, weight, where other and effect are the allele codes. If the names are not consistent, they will be renamed, it's the order that matters
-#------------------------------------------------------------------------------
-
-generate_grs=function(file_in){
+function(file_in){
 
 dosage=extract_snp_bulk(file_in)
 
@@ -23,10 +14,13 @@ nsnps=nrow(grs_snps)
 missing=rep(0,nsnps)
 flip=rep(0,nsnps)
 multi=rep(0,nsnps)
+mismatch=NULL
 
 #pulling out chromosome from dosage is a bit difficult due to stringiness.
 chrs=as.numeric(dosage$variants$chromosome)
 chrs[dosage$variants$chromosome=='X']=23
+
+shift=0
 
 for (i in 1:nsnps){
 #for each snp, m1 will be 1 if the variants and alleles match, and 0 if it doesn't
@@ -54,6 +48,9 @@ for (i in 1:nsnps){
 	)
 	if (m1+m2==0){
 		missing[i]=1
+		if (m3==1){
+			mismatch=c(mismatch,which(grs_snps$chr[i]==chrs&grs_snps$bp[i]==dosage$variants$position))
+		}
 	}
 	if (m2==1){
 		flip[i]=1
@@ -61,7 +58,10 @@ for (i in 1:nsnps){
 	if (m3>1){
 		multi[i]=1
 	}
+	
 }
+
+dosage$genotypes=dosage$genotypes[,-(mismatch+1)]
 
 if (sum(missing)>0){
 	missing_df=grs_snps[which(missing==T),]
@@ -115,5 +115,3 @@ if (sum(missing)==0){
 
 return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
 }
-
-
