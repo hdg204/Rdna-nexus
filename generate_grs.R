@@ -70,7 +70,9 @@ for (i in 1:nsnps){
 	
 }
 
-dosage$genotypes=dosage$genotypes[,-(mismatch+1)]
+if (length(mismatch)>0){
+	dosage$genotypes=dosage$genotypes[,-(mismatch+1)]
+}
 
 if (sum(missing)>0){
 	missing_df=grs_snps[which(missing==T),]
