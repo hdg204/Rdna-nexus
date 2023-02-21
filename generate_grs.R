@@ -23,10 +23,13 @@ nsnps=nrow(grs_snps)
 missing=rep(0,nsnps)
 flip=rep(0,nsnps)
 multi=rep(0,nsnps)
+mismatch=NULL
 
 #pulling out chromosome from dosage is a bit difficult due to stringiness.
 chrs=as.numeric(dosage$variants$chromosome)
 chrs[dosage$variants$chromosome=='X']=23
+
+shift=0
 
 for (i in 1:nsnps){
 #for each snp, m1 will be 1 if the variants and alleles match, and 0 if it doesn't
@@ -54,6 +57,9 @@ for (i in 1:nsnps){
 	)
 	if (m1+m2==0){
 		missing[i]=1
+		if (m3==1){
+			mismatch=c(mismatch,which(grs_snps$chr[i]==chrs&grs_snps$bp[i]==dosage$variants$position))
+		}
 	}
 	if (m2==1){
 		flip[i]=1
@@ -61,6 +67,11 @@ for (i in 1:nsnps){
 	if (m3>1){
 		multi[i]=1
 	}
+	
+}
+
+if (length(mismatch)>0){
+	dosage$genotypes=dosage$genotypes[,-(mismatch+1)]
 }
 
 if (sum(missing)>0){
@@ -115,5 +126,3 @@ if (sum(missing)==0){
 
 return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
 }
-
-
