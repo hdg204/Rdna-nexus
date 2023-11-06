@@ -7,16 +7,57 @@
 # Notes: file_in should be a tab separated file with the columns chromosome, bp, other, effect, weight, where other and effect are the allele codes. If the names are not consistent, they will be renamed, it's the order that matters
 #------------------------------------------------------------------------------
 
-generate_grs=function(file_in){
+generate_grs=function(file_in,info_thres=0,maf_thres=0){
 
-dosage=extract_snp_bulk(file_in)
+system('rm info')
+
+#first apply QC steps. These commands find all the relevant information in the mfi files but only for the SNPs in the GRS
+for (i in 1:22){
+	system(paste0("awk '$1 == ",i," {print $2}' ", file_in, " | grep -w -f - ../../mnt/project/Bulk/Imputation/UKB\\ imputation\\ from\\ genotype/ukb22828_c",i,"_b0_v3.mfi.txt>infotemp"))
+	system(paste0("awk '{print $0, ",i,"}' infotemp >> info"))
+}
+system(paste0("awk '$1 == ",23," {print $2}' ", file_in, " | grep -w -f - ../../mnt/project/Bulk/Imputation/UKB\\ imputation\\ from\\ genotype/ukb22828_cX_b0_v3.mfi.txt>infotemp"))
+system(paste0("awk '{print $0, ",23,"}' infotemp >> info"))
+system(paste0("awk '$1 == ",23," {print $2}' ", file_in, " | grep -w -f - ../../mnt/project/Bulk/Imputation/UKB\\ imputation\\ from\\ genotype/ukb22828_cX_b0_v3.mfi.txt>infotemp"))
+system(paste0("awk '{print $0, ",23,"}' infotemp >> info"))
+
+# I have no idea why there can be copies of some SNPs on CHR23
+info=read.table('info')%>%distinct()
+
+# read in the SPN list to R, previously it had been used on linux command line via system
+grs_snps=read.table(file_in,header=T)
+grs_snps=grs_snps%>%arrange(chr,bp)
+
+# this filters based on maf and info score
+info=mutate(info,snp_id=paste0(V9,':',V3))
+grs_snps=mutate(grs_snps,snp_id=paste0(chr,':',bp))
+grs_snps_2=left_join(grs_snps,info)
+grs_snps_3=grs_snps_2%>%filter(V8>info_thres&V6>maf_thres)%>%select(chr,bp,other,effect,weight)
+
+write.table(grs_snps_3,'temp_grs_list.txt',sep='\t',row.names=FALSE, quote = FALSE)
+
+# report is an output table that contains information about why particular SNPs were wcluded from the GRS
+
+report=grs_snps_2%>%mutate(included='PASS')
+report$included[is.na(report$V3)]='MISSING'
+report$included[report$V8<info_thres]='LOW QUALITY'
+report$included[report$V6<maf_thres]='LOW MAF'
+report=report%>%select(snp_id,chr,bp,other,effect,weight,V6,V8,included)%>%
+	rename(maf=V6,info=V8)
+
+# I need to make a new GRS file with only the SNPs passing QC in order to use my extract_snp_bulk command
+
+dosage=extract_snp_bulk('temp_grs_list.txt')
 
 
 sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
 eid=sample$ID_1[2:nrow(sample)]
 
-grs_snps=read.table(file_in,header=T)
+grs_snps=read.table('temp_grs_list.txt',header=T)
 grs_snps=grs_snps%>%arrange(chr,bp)
+
+
+
 
 nsnps=nrow(grs_snps)
 
@@ -113,7 +154,5 @@ if (sum(missing)==0){
 	missing_df=0
 }
 
-return(out=list(grs=grs,dosage=dosage,missing_snps=missing_df))
+return(out=list(grs=grs,dosage=dosage,report=report))
 }
-
-
