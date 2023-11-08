@@ -54,7 +54,11 @@ sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ geno
 eid=sample$ID_1[2:nrow(sample)]
 
 grs_snps=read.table('temp_grs_list.txt',header=T)
-grs_snps=grs_snps%>%arrange(chr,bp)
+grs_snps=grs_snps%>%
+	mutate(chr=as.numeric(chr),
+	       bp=as.numeric(bp),
+	       weight=as.numeric(weight))%>%
+	arrange(chr,bp)
 
 
 
