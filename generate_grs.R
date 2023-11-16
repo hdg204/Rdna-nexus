@@ -49,6 +49,15 @@ report=report%>%select(snp_id,chr,bp,other,effect,weight,V6,V8,included)%>%
 
 dosage=extract_snp_bulk('temp_grs_list.txt')
 
+# This loop deletes any SNP that doesn't match, which can happen if there are tri-allelic variants.
+while(nrow(dosage$variants)>nrow(grs_snps)){
+	match=
+	(dosage$variants$allele0==grs_snps$other  & dosage$variants$allele1==grs_snps$effect)|
+	(dosage$variants$allele0==grs_snps$effect & dosage$variants$allele1==grs_snps$other)
+	broke_snp=min(which(match==F))
+	dosage$variants=dosage$variants[-broke_snp,]
+	dosage$genotypes=dosage$genotypes[,-(broke_snp+1)]
+}
 
 sample=read.table("../../mnt/project/Bulk/Imputation/UKB\ imputation\ from\ genotype/ukb22828_c1_b0_v3.sample",header=T) #this file has all the sample ids in it, but there's a dummy line at the start
 eid=sample$ID_1[2:nrow(sample)]
