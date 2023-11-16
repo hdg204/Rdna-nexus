@@ -31,17 +31,13 @@ grs_snps=grs_snps%>%arrange(chr,bp)
 # this filters based on maf and info score
 info=mutate(info,snp_id=paste0(V9,':',V3))
 # Function to apply for each row
-check_conditions <- function(row) {
-  any(
-    (info$V9[row] == grs_snps$chr & info$V3[row] == grs_snps$bp & 
-     info$V4[row] == grs_snps$other & info$V5[row] == grs_snps$effect) |
-    (info$V9[row] == grs_snps$chr & info$V3[row] == grs_snps$bp & 
-     info$V4[row] == grs_snps$effect & info$V5[row] == grs_snps$other)
-  )
+check_condition <- function(i) {
+  any((info$V9[i] == grs_snps$chr & info$V3[i] == grs_snps$bp & info$V4[i] == grs_snps$other & info$V5[i] == grs_snps$effect) |
+      (info$V9[i] == grs_snps$chr & info$V3[i] == grs_snps$bp & info$V4[i] == grs_snps$effect & info$V5[i] == grs_snps$other))
 }
 
-# Apply function to each row and store results in a vector
-result_vector <- apply(info, 1, check_conditions)
+# Apply this function to each row index
+result_vector <- sapply(1:nrow(info), check_condition)
 info=info[result_vector,]
 	
 grs_snps=mutate(grs_snps,snp_id=paste0(chr,':',bp))
